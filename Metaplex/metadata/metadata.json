@@ -1,0 +1,44 @@
+{
+    "name": "TIME SHARE DAYS DEMO",
+    "symbol": "TSDD",
+    "description": "Welcome to the kanaka resort goa !!",
+    "seller_fee_basis_points": 0,
+    "image": "https://arweave.net/TBdz7l1IXAB8BUK2LvIg24kcMJbKdmZp9Uihi46kHC0",
+    "attributes": [
+        {
+            "trait_type": "AccessDate",
+            "value": "12/28/2021"
+        },
+        {
+            "trait_type": "YearsOfLife",
+            "value": "20"
+        },
+        {
+            "trait_type": "Location",
+            "value": "Goa, India"
+        },
+        {
+            "trait_type": "AccessTime",
+            "value": "24 Hrs"
+        }
+    ],
+    "collection": {
+        "name": "TIME SHARE DAYS DEMO TOKENS",
+        "family": "TSDDT"
+    },
+    "properties": {
+        "files": [
+            {
+                "uri": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=765&q=80",
+                "type": "image/png"
+            }
+        ],
+        "category": "image",
+        "creators": [
+            {
+                "address": "BMdJzEFuGkdxkSPYUGbVy6oC5nxbRoBYbn3nTDCoq6hg",
+                "share": 100
+            }
+        ]
+    }
+}
