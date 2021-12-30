@@ -1,5 +1,5 @@
 """
-ASGI config for Inscape_backend project.
+ASGI config for Inscape project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Inscape_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Inscape.settings')
 
 application = get_asgi_application()
