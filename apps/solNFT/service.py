@@ -1,5 +1,9 @@
 import json
+
+from Inscape.__init__ import logger
+
 import time
+
 from datetime import date, timedelta
 
 from arweave.arweave_lib import Wallet, Transaction
@@ -10,16 +14,16 @@ from Metaplex.api.metaplex_api import MetaplexAPI as metaPlexPythonLib
 
 # KEYPAIR SOLAN WALLET DETAILS
 SERVER_DECRYPTION_KEY = Fernet.generate_key().decode("ascii")
-TEST_PRIVATE_KEY = "2Cp6e7cFR4kp8Hc8Yu8QSdwso2aTs8p6C2fWEE8uu9g6oMTn5nJ5owNa2xr5wbe7KcRgNy7zkEk64um18MFbvayp"
-TEST_PUBLIC_KEY = "BMdJzEFuGkdxkSPYUGbVy6oC5nxbRoBYbn3nTDCoq6hg"
+TEST_PRIVATE_KEY = "4nGG6pSDX8vBMz4kU6rXLdeKisZz9De4sNaf4xfiWVghsdzBHUjmWPTjDsJ2hny5FDYqdbcer7J8RofAj8rriQBC"
+TEST_PUBLIC_KEY = "FM7FYxjs7FVjK4Dw2HTuX7eaaLPAwmvGhY66rE9RDcFk"
 
 # GLOBAL DATA
-CREATOR_TOKEN_PUBLIC_KEY = "BMdJzEFuGkdxkSPYUGbVy6oC5nxbRoBYbn3nTDCoq6hg"
-TOKEN_NAME = "TIME SHARE DAYS DEMO"
-TOKEN_SYMBOL = "TSDD"
-COLLECTION_NAME = "TIME SHARE DAYS DEMO TOKENS"
-COLLECTION_FAMILY = "TSDDT"
-IMAGE_URI = "https://arweave.net/TBdz7l1IXAB8BUK2LvIg24kcMJbKdmZp9Uihi46kHC0"
+CREATOR_TOKEN_PUBLIC_KEY = "FM7FYxjs7FVjK4Dw2HTuX7eaaLPAwmvGhY66rE9RDcFk"
+TOKEN_NAME = "FINAL TIME SHARE TOKEN"
+TOKEN_SYMBOL = "FTST"
+COLLECTION_NAME = "FINAL TIMESHARE RESORT"
+COLLECTION_FAMILY = "FTRS"
+IMAGE_URI = "https://arweave.net/Umi1tOw4hIPn8VkJtq_fjamMgT-YCOGa55g22t6sT6M?ext=jpg"
 
 DEPLOYED=[]
 MINTED=[]
@@ -30,16 +34,18 @@ api = metaPlexPythonLib(cfg)
 
 # ARWEAVE WALLET CONNECTION
 
-wallet_file_path = "C:/Users/Rajendra/Inscape_backend/Metaplex/awarekeypair.json"
+wallet_file_path = "apps/solNFT/awarekeypair.json"
 wallet = Wallet(wallet_file_path)
 
 # SOLANA NETWORK SET
-api_endpoint = "https://api.devnet.solana.com/"
+api_endpoint = "https://api.devnet.solana.com"
+# api_endpoint ="http://127.0.0.1:8899"
+# api_endpoint ="https://api.testnet.solana.com"
 
 
 # ALTER THE JSON FILE
 def _alterJson(_date):
-    with open('C:/Users/Rajendra/Inscape_backend/Metaplex/metadata/metadata.json', 'r+') as f:
+    with open('Metaplex/metadata/metadata.json', 'r+') as f:
         data = json.load(f)
 
         data['attributes'][0] = {"trait_type": "AccessDate", "value": _date}  # <--- add `id` value.
@@ -93,17 +99,23 @@ def _checkYearLeapOrNot(year):
 def mintToken(_years: object):
     # get current date
     todays_date = date.today()
+    start = time.time()
+
+    DEPLOYED=[]
+    MINTED=[]
 
     # FETCH THE NUMBER OF DAYS
     number_of_days = _findNumberOfDays(_years)
 
-    for i in range(3):
+    for i in range(2):
+        print("******************************************************")
+        print(f"currently minting {i} th NFT")
         # alter the json file
         todayDateString = todays_date.strftime("%m/%d/%Y")
         _alterJson(todayDateString)
 
         # read the json file and upload to arweave
-        with open('C:/Users/Rajendra/Inscape_backend/Metaplex/metadata/metadata.json', 'r') as notjson:
+        with open('Metaplex/metadata/metadata.json', 'r') as notjson:
             Json_data = notjson.read()
             transaction = Transaction(wallet, data=Json_data)
             transaction.add_tag('Content-Type', 'application/json')
@@ -119,21 +131,32 @@ def mintToken(_years: object):
         assert result['status'] == 200, "Sorry the account deploy failed"
 
         contract_key = result.get('contract')
-        time.sleep(30)
         DEPLOYED.append(contract_key)
+
         # Create actual token
         minted = json.loads(api.mint(api_endpoint, contract_key, TEST_PUBLIC_KEY, "https://arweave.net/" + trx_id))
         MINTED.append(minted)
+
         assert minted['status'] == 200, "Sorry the token mint failed"
 
         todays_date += timedelta(days=1)
 
-        response = {
-            'status':True,
-            'Message':'Token has been created successfully'
+    end = time.time()
+    response = {
+        'status':True,
+        'message':'Token has been created successfully',
+        'time':time.strftime("%H:%M:%S", time.gmtime(end-start)),
+        'tokens':10,
+        'data': MINTED,
+        'contracts':DEPLOYED
         }
 
-        return  response
+    
+    print("********************************")
+    print("time taken :",time.strftime("%H:%M:%S", time.gmtime(end-start)))
+    print("********************************")
     print("Finished minting")
     print("All Accounts : ", DEPLOYED)
     print("All Minted   : ", MINTED)
+    return  response
+    
