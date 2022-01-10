@@ -12,6 +12,11 @@ from cryptography.fernet import Fernet
 
 from Metaplex.api.metaplex_api import MetaplexAPI as metaPlexPythonLib
 
+from solana.rpc.api import Client
+
+from Metaplex.metaplex.metadata import get_metadata
+
+
 # KEYPAIR SOLAN WALLET DETAILS
 SERVER_DECRYPTION_KEY = Fernet.generate_key().decode("ascii")
 TEST_PRIVATE_KEY = "4nGG6pSDX8vBMz4kU6rXLdeKisZz9De4sNaf4xfiWVghsdzBHUjmWPTjDsJ2hny5FDYqdbcer7J8RofAj8rriQBC"
@@ -23,13 +28,14 @@ TOKEN_NAME = "FINAL TIME SHARE TOKEN"
 TOKEN_SYMBOL = "FTST"
 COLLECTION_NAME = "FINAL TIMESHARE RESORT"
 COLLECTION_FAMILY = "FTRS"
-IMAGE_URI = "https://arweave.net/Umi1tOw4hIPn8VkJtq_fjamMgT-YCOGa55g22t6sT6M?ext=jpg"
+IMAGE_URI = "https://raw.githubusercontent.com/DevVarunn/CDN/main/Sample_House2.png"
 
-DEPLOYED=[]
-MINTED=[]
+DEPLOYED = []
+MINTED = []
 
 # METAPLEX SETUP
-cfg = {"PRIVATE_KEY": TEST_PRIVATE_KEY, "PUBLIC_KEY": TEST_PUBLIC_KEY, "DECRYPTION_KEY": SERVER_DECRYPTION_KEY}
+cfg = {"PRIVATE_KEY": TEST_PRIVATE_KEY, "PUBLIC_KEY": TEST_PUBLIC_KEY,
+       "DECRYPTION_KEY": SERVER_DECRYPTION_KEY}
 api = metaPlexPythonLib(cfg)
 
 # ARWEAVE WALLET CONNECTION
@@ -42,13 +48,14 @@ api_endpoint = "https://api.devnet.solana.com"
 # api_endpoint ="http://127.0.0.1:8899"
 # api_endpoint ="https://api.testnet.solana.com"
 
-
+res=Client(api_endpoint)
 # ALTER THE JSON FILE
 def _alterJson(_date):
     with open('Metaplex/metadata/metadata.json', 'r+') as f:
         data = json.load(f)
 
-        data['attributes'][0] = {"trait_type": "AccessDate", "value": _date}  # <--- add `id` value.
+        # <--- add `id` value.
+        data['attributes'][0] = {"trait_type": "AccessDate", "value": _date}
         data['name'] = TOKEN_NAME
         data['symbol'] = TOKEN_SYMBOL
         data['image'] = IMAGE_URI
@@ -96,46 +103,74 @@ def _checkYearLeapOrNot(year):
         return False
 
 # MINT TOKEN
+
+
 def mintToken(_years: object):
     # get current date
     todays_date = date.today()
     start = time.time()
 
-    DEPLOYED=[]
-    MINTED=[]
+    DEPLOYED = []
+    MINTED = []
+    data = {}
 
     # FETCH THE NUMBER OF DAYS
     number_of_days = _findNumberOfDays(_years)
 
-    for i in range(2):
-        print("******************************************************")
-        print(f"currently minting {i} th NFT")
-        # alter the json file
+    for i in range(1):
+        # the current count of nft
+        print(f"currently minting {i+1} .No NFT")
+
+        # alter the json file using todays date
         todayDateString = todays_date.strftime("%m/%d/%Y")
         _alterJson(todayDateString)
 
         # read the json file and upload to arweave
-        with open('Metaplex/metadata/metadata.json', 'r') as notjson:
-            Json_data = notjson.read()
-            transaction = Transaction(wallet, data=Json_data)
-            transaction.add_tag('Content-Type', 'application/json')
-            transaction.sign()
-            # Get the trnsaction id for arweave
-            trx_id = transaction.id
-            transaction.send()
+        # with open('Metaplex/metadata/metadata.json', 'r') as notjson:
+        #     Json_data = notjson.read()
+        #     transaction = Transaction(wallet, data=Json_data)
+        #     transaction.add_tag('Content-Type', 'application/json')
+        #     transaction.sign()
+        #     # Get the trnsaction id for arweave
+        #     trx_id = transaction.id
+        #     transaction.send()
 
         # create the account
-        result = json.loads(api.deploy(api_endpoint, TOKEN_NAME, TOKEN_SYMBOL, 0))
+        result = json.loads(api.deploy(
+            api_endpoint, TOKEN_NAME, TOKEN_SYMBOL, 0))
+        # print(f'\n i am sleeping 5s for this to work')
+        # time.sleep(5)
 
         # check the result status or fail
         assert result['status'] == 200, "Sorry the account deploy failed"
 
         contract_key = result.get('contract')
-        DEPLOYED.append(contract_key)
+        # DEPLOYED.append(contract_key)
 
         # Create actual token
-        minted = json.loads(api.mint(api_endpoint, contract_key, TEST_PUBLIC_KEY, "https://arweave.net/" + trx_id))
-        MINTED.append(minted)
+        minted = json.loads(api.mint(
+            api_endpoint, contract_key, TEST_PUBLIC_KEY, "https://raw.githubusercontent.com/DevVarunn/CDN/main/metadata.json"))
+        # MINTED.append(minted) 
+        print(f'\n i am sleeping 3s for this to work')
+        time.sleep(3)
+        data1=json.loads(api.getAccountInfo(api_endpoint,minted['associated_token_account']))
+        # data2=json.loads(api.getAccountInfo(api_endpoint,result['metadata']))
+      
+        # data2=get_metadata(res,data1['result']['value']['data']['parsed']['info']['mint'])
+        # print(f"\n the data by owner is : {api.getAccountsByOwner(api_endpoint,TEST_PUBLIC_KEY,minted['associated_token_account'])}")
+
+        # add data to the object
+        data['token_no'] = str(i)
+        # data['contract'] = contract_key
+        # data['deploy_trx'] = result['result']
+        # data['associated_token_account'] = minted['associated_token_account']
+        # data['mint_trx'] = minted['result']
+        data['SPL_TOKEN']=data1['result']['value']['data']['parsed']['info']['mint']
+        data['METADATA_ACCOUNT']=result['metadata']
+        # data['token_data']=str(data2)
+
+        MINTED.append(data)
+        data = {}
 
         assert minted['status'] == 200, "Sorry the token mint failed"
 
@@ -143,20 +178,17 @@ def mintToken(_years: object):
 
     end = time.time()
     response = {
-        'status':True,
-        'message':'Token has been created successfully',
-        'time':time.strftime("%H:%M:%S", time.gmtime(end-start)),
-        'tokens':10,
+        'status': 200,
+        'message': 'success',
+        'time': time.strftime("%H:%M:%S", time.gmtime(end-start)),
+        'Master_Data': {'symbol':TOKEN_SYMBOL,'name':TOKEN_NAME,'image':IMAGE_URI},
         'data': MINTED,
-        'contracts':DEPLOYED
-        }
+    }
 
-    
     print("********************************")
-    print("time taken :",time.strftime("%H:%M:%S", time.gmtime(end-start)))
+    print("time taken :", time.strftime("%H:%M:%S", time.gmtime(end-start)))
     print("********************************")
     print("Finished minting")
     print("All Accounts : ", DEPLOYED)
     print("All Minted   : ", MINTED)
-    return  response
-    
+    return response

@@ -3,7 +3,7 @@ from cryptography.fernet import Fernet
 import base58
 from nacl.public import PrivateKey
 from solana.keypair import Keypair
-from Metaplex.metaplex.transactions import deploy, topup, mint, send, burn, update_token_metadata
+from Metaplex.metaplex.transactions import deploy, topup, mint, send, burn, update_token_metadata, accountInfo, getDataByOwner
 from Metaplex.utils.execution_engine import execute
 
 
@@ -28,16 +28,16 @@ class MetaplexAPI:
             }
         )
 
-    def deploy(self, api_endpoint, name, symbol, fees, max_retries=3, skip_confirmation=False, max_timeout=20,
-               target=1, finalized=True):
+    def deploy(self, api_endpoint, name, symbol, fees, max_retries=3, skip_confirmation=False, max_timeout=10,
+               target=15, finalized=True):
         """
         Deploy a contract to the blockchain (on network that support contracts). Takes the network ID and contract
         name, plus initializers of name and symbol. Process may vary significantly between blockchains. Returns
         status code of success or fail, the contract address, and the native transaction data.
         """
         try:
-            tx, signers, contract = deploy(api_endpoint, self.keypair, name, symbol, fees)
-            print("contract :",contract)
+            tx, signers, contract, metadata = deploy(
+                api_endpoint, self.keypair, name, symbol, fees)
             resp = execute(
                 api_endpoint,
                 tx,
@@ -49,6 +49,7 @@ class MetaplexAPI:
                 finalized=finalized,
             )
             resp["contract"] = contract
+            resp["metadata"]=metadata
             resp["status"] = 200
             return json.dumps(resp)
         except:
@@ -82,7 +83,8 @@ class MetaplexAPI:
         """
         Mints an NFT to an account, updates the metadata and creates a master edition
         """
-        tx, signers = mint(api_endpoint, self.keypair, contract_key, dest_key, link, supply=supply)
+        tx, signers, associated_token_account = mint(
+            api_endpoint, self.keypair, contract_key, dest_key, link, supply=supply)
         resp = execute(
             api_endpoint,
             tx,
@@ -93,6 +95,7 @@ class MetaplexAPI:
             target=target,
             finalized=finalized,
         )
+        resp["associated_token_account"] = associated_token_account
         resp["status"] = 200
         return json.dumps(resp)
         # except:
@@ -128,7 +131,8 @@ class MetaplexAPI:
         """
         try:
             private_key = list(self.cipher.decrypt(encrypted_private_key))
-            tx, signers = send(api_endpoint, self.keypair, contract_key, sender_key, dest_key, private_key)
+            tx, signers = send(api_endpoint, self.keypair,
+                               contract_key, sender_key, dest_key, private_key)
             resp = execute(
                 api_endpoint,
                 tx,
@@ -153,7 +157,8 @@ class MetaplexAPI:
         """
         try:
             private_key = list(self.cipher.decrypt(encrypted_private_key))
-            tx, signers = burn(api_endpoint, contract_key, owner_key, private_key)
+            tx, signers = burn(api_endpoint, contract_key,
+                               owner_key, private_key)
             resp = execute(
                 api_endpoint,
                 tx,
@@ -168,3 +173,21 @@ class MetaplexAPI:
             return json.dumps(resp)
         except:
             return json.dumps({"status": 400})
+
+    def getAccountInfo(self, api_endpoint, pub_key):
+        try:
+            data = accountInfo(api_endpoint, pub_key)
+            data["status"] = 200
+            return json.dumps(data)
+        except:
+            return json.dump({"status": 400})
+
+    def getAccountsByOwner(self,api_endpoint,owner,mint):
+        try:
+            data=getDataByOwner(api_endpoint,owner,mint)
+            data['status']=200
+            return json.dumps(data)
+        except:
+             return json.dump({"status": 400})
+
+    

@@ -9,6 +9,8 @@ from solana.transaction import AccountMeta, TransactionInstruction
 import base58
 import base64
 
+
+
 MAX_NAME_LENGTH = 32
 MAX_SYMBOL_LENGTH = 10
 MAX_URI_LENGTH = 200
@@ -24,7 +26,8 @@ class InstructionType(IntEnum):
 METADATA_PROGRAM_ID = PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 SYSTEM_PROGRAM_ID = PublicKey('11111111111111111111111111111111')
 SYSVAR_RENT_PUBKEY = PublicKey('SysvarRent111111111111111111111111111111111')
-ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL')
+ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = PublicKey(
+    'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL')
 TOKEN_PROGRAM_ID = PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
 
 
@@ -37,7 +40,8 @@ def get_metadata_account(mint_key):
 
 def get_edition(mint_key):
     return PublicKey.find_program_address(
-        [b'metadata', bytes(METADATA_PROGRAM_ID), bytes(PublicKey(mint_key)), b"edition"],
+        [b'metadata', bytes(METADATA_PROGRAM_ID), bytes(
+            PublicKey(mint_key)), b"edition"],
         METADATA_PROGRAM_ID
     )[0]
 
@@ -45,12 +49,17 @@ def get_edition(mint_key):
 def create_associated_token_account_instruction(associated_token_account, payer, wallet_address, token_mint_address):
     keys = [
         AccountMeta(pubkey=payer, is_signer=True, is_writable=True),
-        AccountMeta(pubkey=associated_token_account, is_signer=False, is_writable=True),
+        AccountMeta(pubkey=associated_token_account,
+                    is_signer=False, is_writable=True),
         AccountMeta(pubkey=wallet_address, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=token_mint_address, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=SYSTEM_PROGRAM_ID, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=SYSVAR_RENT_PUBKEY, is_signer=False, is_writable=False),
+        AccountMeta(pubkey=token_mint_address,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=SYSTEM_PROGRAM_ID,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=TOKEN_PROGRAM_ID,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=SYSVAR_RENT_PUBKEY,
+                    is_signer=False, is_writable=False),
     ]
     return TransactionInstruction(keys=keys, program_id=ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID)
 
@@ -118,25 +127,32 @@ def create_metadata_instruction_data(name, symbol, fee, creators):
 
 def create_metadata_instruction(data, update_authority, mint_key, mint_authority_key, payer):
     metadata_account = get_metadata_account(mint_key)
-    print("Metadata account : ",metadata_account)
+    print("Metadata account : ", metadata_account)
     keys = [
-        AccountMeta(pubkey=metadata_account, is_signer=False, is_writable=True),
+        AccountMeta(pubkey=metadata_account,
+                    is_signer=False, is_writable=True),
         AccountMeta(pubkey=mint_key, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=mint_authority_key, is_signer=True, is_writable=False),
+        AccountMeta(pubkey=mint_authority_key,
+                    is_signer=True, is_writable=False),
         AccountMeta(pubkey=payer, is_signer=True, is_writable=False),
-        AccountMeta(pubkey=update_authority, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=SYSTEM_PROGRAM_ID, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=SYSVAR_RENT_PUBKEY, is_signer=False, is_writable=False),
+        AccountMeta(pubkey=update_authority,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=SYSTEM_PROGRAM_ID,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=SYSVAR_RENT_PUBKEY,
+                    is_signer=False, is_writable=False),
     ]
-    return TransactionInstruction(keys=keys, program_id=METADATA_PROGRAM_ID, data=data)
+    return TransactionInstruction(keys=keys, program_id=METADATA_PROGRAM_ID, data=data), str(metadata_account)
 
 
 def unpack_metadata_account(data):
     assert (data[0] == 4)
     i = 1
-    source_account = base58.b58encode(bytes(struct.unpack('<' + "B" * 32, data[i:i + 32])))
+    source_account = base58.b58encode(
+        bytes(struct.unpack('<' + "B" * 32, data[i:i + 32])))
     i += 32
-    mint_account = base58.b58encode(bytes(struct.unpack('<' + "B" * 32, data[i:i + 32])))
+    mint_account = base58.b58encode(
+        bytes(struct.unpack('<' + "B" * 32, data[i:i + 32])))
     i += 32
     name_len = struct.unpack('<I', data[i:i + 4])[0]
     i += 4
@@ -161,7 +177,8 @@ def unpack_metadata_account(data):
         creator_len = struct.unpack('<I', data[i:i + 4])[0]
         i += 4
         for _ in range(creator_len):
-            creator = base58.b58encode(bytes(struct.unpack('<' + "B" * 32, data[i:i + 32])))
+            creator = base58.b58encode(
+                bytes(struct.unpack('<' + "B" * 32, data[i:i + 32])))
             creators.append(creator)
             i += 32
             verified.append(data[i])
@@ -189,23 +206,26 @@ def unpack_metadata_account(data):
     return metadata
 
 
-def get_metadata(client, mint_key,max_retries=3,time_sleep=7):
+def get_metadata(client, mint_key, max_retries=3, time_sleep=7):
     metadata_account = get_metadata_account(mint_key)
     for attempt in range(max_retries):
         time.sleep(time_sleep)
-        resp=client.get_account_info(metadata_account)['result']['value']
-        if resp is not None:
-            data = base64.b64decode(resp['data'][0])
+        resp = client.get_account_info(metadata_account)
+        if resp['result']['value'] is not None:
+            print(f"encoded data is : {resp['result']['value']['data'][0]}")
+            data = base64.b64decode(resp['result']['value']['data'][0])
             metadata = unpack_metadata_account(data)
             return metadata
         else:
             print(f"resp {resp} metadata not broadcasterd yet :(")
             print(f"Failed attempt {attempt} :(")
             continue
+    print(f'sorry i was not able to get metadata for {str(mint_key)}')
 
 
 def update_metadata_instruction_data(name, symbol, uri, fee, creators, verified, share):
-    _data = bytes([1]) + _get_data_buffer(name, symbol, uri, fee, creators, verified, share) + bytes([0, 0])
+    _data = bytes([1]) + _get_data_buffer(name, symbol, uri,
+                                          fee, creators, verified, share) + bytes([0, 0])
     instruction_layout = cStruct(
         "instruction_type" / Int8ul,
         "args" / Bytes(len(_data)),
@@ -221,8 +241,10 @@ def update_metadata_instruction_data(name, symbol, uri, fee, creators, verified,
 def update_metadata_instruction(data, update_authority, mint_key):
     metadata_account = get_metadata_account(mint_key)
     keys = [
-        AccountMeta(pubkey=metadata_account, is_signer=False, is_writable=True),
-        AccountMeta(pubkey=update_authority, is_signer=True, is_writable=False),
+        AccountMeta(pubkey=metadata_account,
+                    is_signer=False, is_writable=True),
+        AccountMeta(pubkey=update_authority,
+                    is_signer=True, is_writable=False),
     ]
     return TransactionInstruction(keys=keys, program_id=METADATA_PROGRAM_ID, data=data)
 
@@ -243,13 +265,18 @@ def create_master_edition_instruction(
     keys = [
         AccountMeta(pubkey=edition_account, is_signer=False, is_writable=True),
         AccountMeta(pubkey=mint, is_signer=False, is_writable=True),
-        AccountMeta(pubkey=update_authority, is_signer=True, is_writable=False),
+        AccountMeta(pubkey=update_authority,
+                    is_signer=True, is_writable=False),
         AccountMeta(pubkey=mint_authority, is_signer=True, is_writable=False),
         AccountMeta(pubkey=payer, is_signer=True, is_writable=False),
-        AccountMeta(pubkey=metadata_account, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=SYSTEM_PROGRAM_ID, is_signer=False, is_writable=False),
-        AccountMeta(pubkey=SYSVAR_RENT_PUBKEY, is_signer=False, is_writable=False),
+        AccountMeta(pubkey=metadata_account,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=TOKEN_PROGRAM_ID,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=SYSTEM_PROGRAM_ID,
+                    is_signer=False, is_writable=False),
+        AccountMeta(pubkey=SYSVAR_RENT_PUBKEY,
+                    is_signer=False, is_writable=False),
     ]
     return TransactionInstruction(
         keys=keys,

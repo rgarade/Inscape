@@ -1,6 +1,8 @@
 import json
 import base64
+from nacl import encoding
 from solana.publickey import PublicKey
+from solana.rpc.types import TokenAccountOpts
 from solana.transaction import Transaction
 from solana.keypair import Keypair
 from solana.rpc.api import Client
@@ -60,7 +62,7 @@ def deploy(api_endpoint, source_account, name, symbol, fees):
     )
     tx = tx.add(initialize_mint_ix)
     # Create Token Metadata
-    create_metadata_ix = create_metadata_instruction(
+    create_metadata_ix,metadata_acc = create_metadata_instruction(
         data=create_metadata_instruction_data(name, symbol, fees, [str(source_account.public_key)]),
         update_authority=source_account.public_key,
         mint_key=mint_account.public_key,
@@ -68,7 +70,7 @@ def deploy(api_endpoint, source_account, name, symbol, fees):
         payer=source_account.public_key,
     )
     tx = tx.add(create_metadata_ix)
-    return tx, signers, str(mint_account.public_key)
+    return tx, signers, str(mint_account.public_key),metadata_acc
 
 
 def wallet():
@@ -159,7 +161,10 @@ def mint(api_endpoint, source_account, contract_key, dest_key, link, supply=1):
     tx = Transaction()
     # Create Associated Token Account
     associated_token_account = get_associated_token_address(user_account, mint_account)
+    print(f"associated token account {associated_token_account}")
     associated_token_account_info = client.get_account_info(associated_token_account)
+    print(f"associated token account info {associated_token_account_info}")
+    print(f"source account {source_account.public_key}")
     # Check if PDA is initialized. If not, create the account
     account_info = associated_token_account_info['result']['value']
     if account_info is not None:
@@ -210,7 +215,7 @@ def mint(api_endpoint, source_account, contract_key, dest_key, link, supply=1):
         supply=supply,
     )
     tx = tx.add(create_master_edition_ix)
-    return tx, signers
+    return tx, signers, str(associated_token_account)
 
 
 def send(api_endpoint, source_account, contract_key, sender_key, dest_key, private_key):
@@ -251,6 +256,7 @@ def send(api_endpoint, source_account, contract_key, sender_key, dest_key, priva
             token_mint_address=mint_account,
         )
         tx = tx.add(associated_token_account_ix)
+   
         # Transfer the Token from the sender account to the associated token account
     spl_transfer_ix = spl_transfer(
         SPLTransferParams(
@@ -299,3 +305,27 @@ def burn(api_endpoint, contract_key, owner_key, private_key):
     )
     tx = tx.add(burn_ix)
     return tx, signers
+
+
+
+def accountInfo(api_endpoint,pub_key):
+    # Initialize Client
+    client = Client(api_endpoint)
+    # List accounts
+    owner_account = PublicKey(pub_key)
+
+    result=client.get_account_info(owner_account,commitment='confirmed',encoding="jsonParsed")
+
+    return result
+
+
+def getDataByOwner(api_endpoint,owner_add,mint):
+    # Initialize Client
+    client = Client(api_endpoint)
+    # List accounts
+    owner_account = PublicKey(owner_add)
+
+    result=client.get_token_accounts_by_owner(owner_account,TokenAccountOpts(mint=str(mint)))
+
+    return result
+
