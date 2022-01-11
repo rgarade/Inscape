@@ -5,10 +5,11 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from . import service
+from Inscape.__init__ import logger
 
 @api_view(['POST']) 
 def mint_token(request):
-    # logger.info("---End FUNCTION:checkCalendarSynced(request)/Views---")  
+    logger.info("---Start FUNCTION:mint_token(request)/Views---")  
     try:  
         response = service.mintToken(10)
         return Response(response, status = status.HTTP_200_OK)
@@ -17,5 +18,72 @@ def mint_token(request):
         return Response(response, status = status.HTTP_400_BAD_REQUEST)
     finally:
         print("exit")
-        # logger.info("---End FUNCTION:checkCalendarSynced(request)/Views---") 
+        logger.info("---End FUNCTION:mint_token(request)/Views---") 
+
+@api_view(['POST']) 
+def login(request):
+    logger.info("---End FUNCTION:login(request)/Views---")  
+    try:  
+        body = json.loads(request.body)
+        username = body['username']
+        password = body['password']
+        response = service.login(username,password)
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:    
+            return Response(response, status = status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserDetails : {e}")  
+        response = {'Key Error' : str(e)}
+        return Response(response, status = status.HTTP_400_BAD_REQUEST)
+    finally:
+        logger.info("---End FUNCTION:login(request)/Views---") 
+
+@api_view(['GET'])
+def logout(request):
+    logger.info("---End FUNCTION:logout(request)/Views---")  
+    try:  
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.logout(authToken)
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:    
+            return Response(response, status = status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserDetails : {e}")  
+        response = {'Key Error' : str(e)}
+        return Response(response, status = status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+def saveUserDetails(request):
+    logger.info("---End FUNCTION:saveUserDetails(request)/Views---") 
+    try:
+        body = json.loads(request.body)
+        print(body)
+        response = service.saveUserDetails(body)
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:    
+            return Response(response, status = status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserDetails : {e}")  
+        response = {'Key Error' : str(e)}
+        return Response(response, status = status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET']) 
+def getUserDetails(request):
+    logger.info("---End FUNCTION:getUserDetails(request)/Views---")  
+    try:  
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.getUserDetails(authToken)
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:    
+            return Response(response, status = status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserDetails : {e}")  
+        response = {'Key Error' : str(e)}
+        return Response(response, status = status.HTTP_400_BAD_REQUEST)
 

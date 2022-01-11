@@ -1,20 +1,23 @@
 import json
-
 from Inscape.__init__ import logger
-
 import time
-
 from datetime import date, timedelta
-
 from arweave.arweave_lib import Wallet, Transaction
-
 from cryptography.fernet import Fernet
-
 from Metaplex.api.metaplex_api import MetaplexAPI as metaPlexPythonLib
-
 from solana.rpc.api import Client
-
 from Metaplex.metaplex.metadata import get_metadata
+from Inscape import configutils
+from django.db import IntegrityError
+from django.http import JsonResponse 
+from .models import *
+from .forms import *
+from .serializers import *
+from datetime import date, timedelta ,datetime
+from django.contrib.auth.hashers import make_password
+from rest_framework.authtoken.models import Token
+from django.contrib import auth
+from django.contrib.auth.hashers import check_password
 
 
 # KEYPAIR SOLAN WALLET DETAILS
@@ -49,6 +52,12 @@ api_endpoint = "https://api.devnet.solana.com"
 # api_endpoint ="https://api.testnet.solana.com"
 
 res=Client(api_endpoint)
+
+# returns the errors/messages string stored in config.ini
+def responseMessage(arg):
+    return configutils.getProperties('MESSAGES', arg)
+
+
 # ALTER THE JSON FILE
 def _alterJson(_date):
     with open('Metaplex/metadata/metadata.json', 'r+') as f:
@@ -192,3 +201,131 @@ def mintToken(_years: object):
     print("All Accounts : ", DEPLOYED)
     print("All Minted   : ", MINTED)
     return response
+
+
+####   Stored user details in UserMaster table #####
+
+def saveUserDetails(body):
+    logger.info("---START FUNCTION: saveUserDetails(body)/service---")
+    try:
+        logger.info(f"body of function is : {body}")
+        body['dDOB'] = datetime.strptime(body['dDOB'],'%d/%m/%Y')
+        fd = userMasterMapping(body)
+     
+        if fd.is_valid():
+            if User.objects.filter(sWalletAddress = body['sWalletAddress'] , sEmailaddress = body['sEmailaddress']).exists():
+                logger.info("User already exists:")
+                response ={ 
+                    'status' : False,
+                    'message' : responseMessage('user_is_already_Exists')
+                }
+                return response
+            else:
+                logger.info("User has been created successfully")
+                fd.save()
+                response ={ 
+                    'status' : True,
+                    'message' : responseMessage('user_created')
+                }
+                return response
+               
+        else:
+            print(fd.errors)
+            logger.error(f"Error ocuured for saving data : {fd.errors}")
+            response ={ 
+                'status' : False,
+                'Error' : fd.errors
+            }
+            return response
+    
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error' : str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error' : str(e)}
+        return response
+    except User.DoesNotExist:
+        response = {'status':False, 'message' : responseMessage('user_is_already_Exists')}
+        return response
+
+def login(username, password):
+    try:
+        user = User.objects.get(username=username)
+        print(user.username)
+        user = User.objects.get(username=username)
+        if check_password(password, user.sPassword):
+            token = Token.objects.filter(user=user)
+            if(token.exists()):
+                token = Token.objects.get(user=user)
+            else:
+                token = Token.objects.create(user = user)
+
+            response = {
+                'status' : True,
+                'message' : responseMessage('login_success'),
+                'token': token.key
+            }
+            return response         
+                
+        else:
+            response_message = responseMessage('invalid_username_or_password')
+
+            response = {
+                'status' : False,
+                'message' : response_message,
+            }
+            return response
+    except User.DoesNotExist:
+        response_message = responseMessage('invalid_username_or_password')
+        response = {'status' : False, 'message' : response_message }
+        return response
+
+def logout(token):
+    logger.info("---START FUNCTION: logout(token)/service---")
+    try:
+        token = Token.objects.get(key = token)
+        token.delete()
+        response = {'status' : 'True', 'message' : responseMessage('User_Loged_Out')}
+        return response
+    except Token.DoesNotExist as e:
+        response_message = responseMessage('authorization_fail')
+        response = {'status':'False', 'message' : response_message}
+        logger.error(f"Authorization Fail: {e}")
+        return response
+
+
+####   retrieve user details from UserMaster table #####
+
+def getUserDetails(token):
+    logger.info("---START FUNCTION: getUserDetails(token)/service---")
+    try:
+        logger.info(f"Token of that user is  : {token}")
+        token = Token.objects.get(key=token)
+        user = User.objects.get(pk = token.user_id)
+        user1 = UserSerializer(user, many = False)
+        userData = json.loads(json.dumps(user1.data))
+        response ={ 
+            'status' : True,
+            'data' : userData
+        }
+        return response
+               
+    
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error' : str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error' : str(e)}
+        return response
+    except User.DoesNotExist:
+        response = {'status':False, 'message' : responseMessage('user_not_found')}
+        return response
+    except Token.DoesNotExist:
+        response = {'status':False, 'message' : responseMessage('user_not_found')}
+        return response
+
+

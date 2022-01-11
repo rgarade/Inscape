@@ -14,25 +14,25 @@ class User(AbstractUser):
     is_active = None
     date_joined = None
     last_login = None
-    REQUIRED_FIELDS = []
-
+    
     sFirstName = models.CharField(max_length=50, unique=False,blank=True, null= False)
     sLastName = models.CharField(max_length=50, unique=False,blank=True, null= False)
     sAddressLine1 = models.CharField(max_length=500, unique=False,blank=True, null= False)
     sAddressLine2 = models.CharField(max_length=500, unique=False,blank=True, null= True)
     sCity = models.CharField(max_length=100, unique=False,blank=True, null= False)
     iZipCode = models.IntegerField(unique=False, blank=True, null= False)
+    iCountryCode = models.IntegerField(unique=False, blank=True, null= False)
     sEmailaddress = models.EmailField(max_length = 254)
     sPassword = models.CharField(max_length=100, unique=False,blank=True, null= False)
     iPhoneNumber = models.IntegerField(unique=False, blank=True, null= False)
     sWalletAddress = models.CharField(max_length=250, unique=False,blank=True, null= False)
     dDOB = models.DateField(blank=True, null= False)
-    sStatus = models.CharField(max_length=50, unique=False,blank=True, null= False)
-    iCreatedBy = models.ForeignKey('self', on_delete=models.CASCADE,related_name='user_created_by')
+    sStatus = models.CharField(max_length=50, unique=False,blank=True, null= False,default='Active')
+    iCreatedBy = models.ForeignKey('self', on_delete=models.CASCADE,related_name='user_created_by',blank=True, null= True)
     dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
-    iModifiedBy = models.ForeignKey('self', on_delete=models.CASCADE,related_name='user_modified_by')
+    iModifiedBy = models.ForeignKey('self', on_delete=models.CASCADE,related_name='user_modified_by',blank=True, null= True)
     dModifiedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
-    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
+    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False,default=False)
 
     class Meta:
         db_table = 'tblUserMaster'
@@ -62,6 +62,7 @@ class PropertyMaster(models.Model):
     sPropertyAddressLine2 = models.CharField(max_length=1000, unique=False,blank=True, null= False)
     sCity = models.CharField(max_length=50, unique=False,blank=True, null= False)
     iZipCode = models.IntegerField(unique=False, blank=True, null= False)
+    iCountryCode = models.IntegerField(unique=False, blank=True, null= False)
     bLegalClearance = models.BooleanField(unique=False, blank=True, null= False)
     bTechnicalClearance = models.BooleanField(unique=False, blank=True, null= False)
     sAvailabilityStatus = models.CharField(max_length=50, unique=False,blank=True, null= False)
@@ -71,6 +72,20 @@ class PropertyMaster(models.Model):
     fPropertyCurrentPrice = models.FloatField(unique=False,blank=True, null= True)
     iCurrencyId = models.ForeignKey(CurrencyMaster, on_delete=models.CASCADE,related_name='property_currency_id')
     ePropertyCategoryId = models.CharField(max_length=100,choices=PropertyCategory.choices)
+    iLatitude = models.IntegerField(unique=False, blank=True, null= False)
+    iLongitude = models.IntegerField(unique=False, blank=True, null= False)
+    fLandArea = models.FloatField(unique=False,blank=True, null= True)
+    fLivingArea = models.FloatField(unique=False,blank=True, null= True)
+    LegalDocumentsURL = models.CharField(max_length=1000, unique=False,blank=True, null= False)
+    TechicalDocumentsURL = models.CharField(max_length=1000, unique=False,blank=True, null= False)
+    sDeedtype = models.CharField(max_length=500, unique=False,blank=True, null= False)
+    sFireplace = models.CharField(max_length=500, unique=False,blank=True, null= False)
+    iNoofParkings = models.IntegerField(unique=False, blank=True, null= False)
+    iNoofFloors = models.IntegerField(unique=False, blank=True, null= False)
+    iNoofGarages = models.IntegerField(unique=False, blank=True, null= False)
+    iApproxAge = models.IntegerField(unique=False, blank=True, null= False)
+    fPropTax = models.FloatField(unique=False,blank=True, null= True)
+    sConstructionSstyle = models.CharField(max_length=500, unique=False,blank=True, null= False)
     iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_created_by')
     dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
     iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_modified_by')
