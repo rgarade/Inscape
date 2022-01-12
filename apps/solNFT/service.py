@@ -9,15 +9,16 @@ from solana.rpc.api import Client
 from Metaplex.metaplex.metadata import get_metadata
 from Inscape import configutils
 from django.db import IntegrityError
-from django.http import JsonResponse 
+from django.http import JsonResponse
 from .models import *
 from .forms import *
 from .serializers import *
-from datetime import date, timedelta ,datetime
+from datetime import date, timedelta, datetime
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.models import Token
 from django.contrib import auth
 from django.contrib.auth.hashers import check_password
+from django.db.models import Q
 
 
 # KEYPAIR SOLAN WALLET DETAILS
@@ -51,9 +52,11 @@ api_endpoint = "https://api.devnet.solana.com"
 # api_endpoint ="http://127.0.0.1:8899"
 # api_endpoint ="https://api.testnet.solana.com"
 
-res=Client(api_endpoint)
+res = Client(api_endpoint)
 
 # returns the errors/messages string stored in config.ini
+
+
 def responseMessage(arg):
     return configutils.getProperties('MESSAGES', arg)
 
@@ -159,12 +162,13 @@ def mintToken(_years: object):
         # Create actual token
         minted = json.loads(api.mint(
             api_endpoint, contract_key, TEST_PUBLIC_KEY, "https://raw.githubusercontent.com/DevVarunn/CDN/main/metadata.json"))
-        # MINTED.append(minted) 
+        # MINTED.append(minted)
         print(f'\n i am sleeping 3s for this to work')
         time.sleep(3)
-        data1=json.loads(api.getAccountInfo(api_endpoint,minted['associated_token_account']))
+        data1 = json.loads(api.getAccountInfo(
+            api_endpoint, minted['associated_token_account']))
         # data2=json.loads(api.getAccountInfo(api_endpoint,result['metadata']))
-      
+
         # data2=get_metadata(res,data1['result']['value']['data']['parsed']['info']['mint'])
         # print(f"\n the data by owner is : {api.getAccountsByOwner(api_endpoint,TEST_PUBLIC_KEY,minted['associated_token_account'])}")
 
@@ -174,8 +178,8 @@ def mintToken(_years: object):
         # data['deploy_trx'] = result['result']
         # data['associated_token_account'] = minted['associated_token_account']
         # data['mint_trx'] = minted['result']
-        data['SPL_TOKEN']=data1['result']['value']['data']['parsed']['info']['mint']
-        data['METADATA_ACCOUNT']=result['metadata']
+        data['SPL_TOKEN'] = data1['result']['value']['data']['parsed']['info']['mint']
+        data['METADATA_ACCOUNT'] = result['metadata']
         # data['token_data']=str(data2)
 
         MINTED.append(data)
@@ -190,7 +194,7 @@ def mintToken(_years: object):
         'status': 200,
         'message': 'success',
         'time': time.strftime("%H:%M:%S", time.gmtime(end-start)),
-        'Master_Data': {'symbol':TOKEN_SYMBOL,'name':TOKEN_NAME,'image':IMAGE_URI},
+        'Master_Data': {'symbol': TOKEN_SYMBOL, 'name': TOKEN_NAME, 'image': IMAGE_URI},
         'data': MINTED,
     }
 
@@ -209,46 +213,48 @@ def saveUserDetails(body):
     logger.info("---START FUNCTION: saveUserDetails(body)/service---")
     try:
         logger.info(f"body of function is : {body}")
-        body['dDOB'] = datetime.strptime(body['dDOB'],'%d/%m/%Y')
+        body['dDOB'] = datetime.strptime(body['dDOB'], '%d/%m/%Y')
         fd = userMasterMapping(body)
-     
+
         if fd.is_valid():
-            if User.objects.filter(sWalletAddress = body['sWalletAddress'] , sEmailaddress = body['sEmailaddress']).exists():
+            if User.objects.filter(sWalletAddress=body['sWalletAddress'], sEmailaddress=body['sEmailaddress']).exists():
                 logger.info("User already exists:")
-                response ={ 
-                    'status' : False,
-                    'message' : responseMessage('user_is_already_Exists')
+                response = {
+                    'status': False,
+                    'message': responseMessage('user_is_already_Exists')
                 }
                 return response
             else:
                 logger.info("User has been created successfully")
                 fd.save()
-                response ={ 
-                    'status' : True,
-                    'message' : responseMessage('user_created')
+                response = {
+                    'status': True,
+                    'message': responseMessage('user_created')
                 }
                 return response
-               
+
         else:
             print(fd.errors)
             logger.error(f"Error ocuured for saving data : {fd.errors}")
-            response ={ 
-                'status' : False,
-                'Error' : fd.errors
+            response = {
+                'status': False,
+                'Error': fd.errors
             }
             return response
-    
+
     except IntegrityError as e:
         logger.error(f"IntegrityError: {e}")
-        response = {'Error' : str(e)}
+        response = {'Error': str(e)}
         return response
     except KeyError as e:
         logger.error(f"KeyError: {e}")
-        response = {'Key Error' : str(e)}
+        response = {'Key Error': str(e)}
         return response
     except User.DoesNotExist:
-        response = {'status':False, 'message' : responseMessage('user_is_already_Exists')}
+        response = {'status': False, 'message': responseMessage(
+            'user_is_already_Exists')}
         return response
+
 
 def login(username, password):
     try:
@@ -260,38 +266,40 @@ def login(username, password):
             if(token.exists()):
                 token = Token.objects.get(user=user)
             else:
-                token = Token.objects.create(user = user)
+                token = Token.objects.create(user=user)
 
             response = {
-                'status' : True,
-                'message' : responseMessage('login_success'),
+                'status': True,
+                'message': responseMessage('login_success'),
                 'token': token.key
             }
-            return response         
-                
+            return response
+
         else:
             response_message = responseMessage('invalid_username_or_password')
 
             response = {
-                'status' : False,
-                'message' : response_message,
+                'status': False,
+                'message': response_message,
             }
             return response
     except User.DoesNotExist:
         response_message = responseMessage('invalid_username_or_password')
-        response = {'status' : False, 'message' : response_message }
+        response = {'status': False, 'message': response_message}
         return response
+
 
 def logout(token):
     logger.info("---START FUNCTION: logout(token)/service---")
     try:
-        token = Token.objects.get(key = token)
+        token = Token.objects.get(key=token)
         token.delete()
-        response = {'status' : 'True', 'message' : responseMessage('User_Loged_Out')}
+        response = {'status': 'True',
+                    'message': responseMessage('User_Loged_Out')}
         return response
     except Token.DoesNotExist as e:
         response_message = responseMessage('authorization_fail')
-        response = {'status':'False', 'message' : response_message}
+        response = {'status': 'False', 'message': response_message}
         logger.error(f"Authorization Fail: {e}")
         return response
 
@@ -303,29 +311,143 @@ def getUserDetails(token):
     try:
         logger.info(f"Token of that user is  : {token}")
         token = Token.objects.get(key=token)
-        user = User.objects.get(pk = token.user_id)
-        user1 = UserSerializer(user, many = False)
+        user = User.objects.get(pk=token.user_id)
+        user1 = UserSerializer(user, many=False)
         userData = json.loads(json.dumps(user1.data))
-        response ={ 
-            'status' : True,
-            'data' : userData
+        response = {
+            'status': True,
+            'data': userData
         }
         return response
-               
-    
+
     except IntegrityError as e:
         logger.error(f"IntegrityError: {e}")
-        response = {'Error' : str(e)}
+        response = {'Error': str(e)}
         return response
     except KeyError as e:
         logger.error(f"KeyError: {e}")
-        response = {'Key Error' : str(e)}
+        response = {'Key Error': str(e)}
         return response
     except User.DoesNotExist:
-        response = {'status':False, 'message' : responseMessage('user_not_found')}
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
         return response
     except Token.DoesNotExist:
-        response = {'status':False, 'message' : responseMessage('user_not_found')}
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
         return response
 
 
+def getAllProperty():
+    logger.info("---START FUNCTION: getAllProperty(token)/service---")
+    try:
+        data = PropertyMaster.objects.all()
+        data2 = propertySerializer(data, many=True)
+
+        dataFinal={}
+
+        for data in json.loads(json.dumps(data2.data)):
+            dataFinal[data["sPropertyName"]]=data
+     
+        response = {
+            'status': True,
+            'data': dataFinal
+        }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except PropertyMaster.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+
+
+def getAllPropertyFiltered(body):
+    logger.info("---START FUNCTION: getAllProperty(token)/service---")
+    try:
+
+        filters = {}
+        if body['ePropertyCategoryId']:
+            filters['ePropertyCategoryId'] = body['ePropertyCategoryId']
+        if body['pricemax']:
+            filters['fPropertyCurrentPrice__lte'] = body['pricemax']
+        if body['pricemin']:
+            filters['fPropertyCurrentPrice__gte'] = body['pricemin']
+        if body['iCurrencyId']:
+            filters['iCurrencyId']=body['iCurrencyId']
+        
+        filter_q = Q(**filters)
+        print(f"Filter {filter_q}")
+        filteredData = PropertyMaster.objects.filter(filter_q)
+
+        data2 = propertySerializer(filteredData, many=True)
+        dataFinal={}
+
+        for data in json.loads(json.dumps(data2.data)):
+            dataFinal[data["sPropertyName"]]=data
+
+        response = {
+            'status': True,
+            'data': dataFinal
+        }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except PropertyMaster.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+    except CurrencyMaster.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+
+
+def getPropertyDetails(body):
+    logger.info("---START FUNCTION: getProperty(token)/service---")
+    try:
+        propertydata=PropertyMaster.objects.get(sPropertyName=body['sPropertyName']) 
+        data2 = propertySerializer(propertydata, many=False)
+
+        dataFinal={}
+
+        data=json.loads(json.dumps(data2.data))
+        dataFinal[data["sPropertyName"]]=data
+
+
+        response = {
+            'status': True,
+            'data': dataFinal
+                }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except PropertyMaster.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+    except CurrencyMaster.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
