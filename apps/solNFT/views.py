@@ -64,7 +64,7 @@ def saveUserDetails(request):
     try:
         body = json.loads(request.body)
         response = service.saveUserDetails(body)
-        
+
         if(response["status"] == False):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -148,3 +148,45 @@ def get_property_details(request):
         logger.error(f"Key Error in getUserDetails : {e}")
         response = {'Key Error': str(e)}
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def get_all_currency(request):
+    logger.info("---End FUNCTION:getAllCurrency(request)/Views---")
+    try:
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.getUserDetails(authToken)
+
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            response = service.getAllCurrency()
+            return Response(response, status=status.HTTP_200_OK)
+
+    except KeyError as e:
+        response = {'Key Error': str(e)}
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    finally:
+        logger.info("---End FUNCTION:getAllProperty(request)/Views---")
+
+
+
+@api_view(['GET'])
+def get_account_info(request):
+    logger.info("---End FUNCTION:getAccountInfo(request)/Views---")
+    try:
+        body = json.loads(request.body)
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.getUserDetails(authToken)
+
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            response = service.getAccountInfo(body)
+            return Response(response, status=status.HTTP_200_OK)
+
+    except KeyError as e:
+        response = {'Key Error': str(e)}
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    finally:
+        logger.info("---End FUNCTION:getAllProperty(request)/Views---")

@@ -451,3 +451,69 @@ def getPropertyDetails(body):
         response = {'status': False,
                     'message': responseMessage('user_not_found')}
         return response
+
+
+def getAccountInfo(body):
+    
+    logger.info("---START FUNCTION: getWalletInfo(token)/service---")
+    try:
+        walletAddress=body['wallet']
+        data=json.loads(api.getAccountInfo(api_endpoint,walletAddress))
+        if data['status']==200:
+            sol=0.000000001*data['result']['value']['lamports']
+            response = {
+                'status': True,
+                'data':  {
+                'SOL':sol
+                         }
+                }
+
+        else:
+            response = {
+                'status': False,
+                 'message':"Error Occoured"
+                }
+            
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+  
+
+def getAllCurrency():
+
+    
+    logger.info("---START FUNCTION: getAllCurrency(token)/service---")
+    try:
+        data = CurrencyMaster.objects.all()
+        data2 = currencySerializer(data, many=True)
+
+        dataFinal={}
+
+        for data in json.loads(json.dumps(data2.data)):
+            dataFinal[data["sCurrencyName"]]=data
+     
+        response = {
+            'status': True,
+            'data': dataFinal
+        }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except CurrencyMaster.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response

@@ -10,8 +10,8 @@ urlpatterns = [
     re_path(r'get_all_property',views.get_all_property,name="get_all_proprty"),
     re_path(r'get_property_details',views.get_property_details,name="get_proprty_details"),
     re_path(r'save-user', views.saveUserDetails, name = "saveUserDetails"),
+    re_path(r'get_account_details', views.get_account_info, name = "get_account_info"),
+    re_path(r'get_all_currency', views.get_all_currency, name = "get_all_currency"),
     re_path(r'get-user-details', views.getUserDetails, name = "getUserDetails"),
     re_path(r'logout', views.logout, name = "logout"),
-
-
 ]

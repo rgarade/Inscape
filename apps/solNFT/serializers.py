@@ -28,3 +28,10 @@ class propertySerializer(serializers.ModelSerializer):
         model = PropertyMaster
         fields = ["sPropertyName", "ePropertyCategoryId","sPropertyDesc", "sPropertyAddressLine1", "sPropertyAddressLine2", "sCity", "iZipCode", "bLegalClearance", "bTechnicalClearance", "sAvailabilityStatus", "dAvailabilityDate",
                   "sPropertyPhotos", "sPropertyDocs", "fPropertyCurrentPrice", "Currency","iCurrencyId", "PropCreatedBy", "dCreatedDate", "PropModifiedBy", "dModifiedDate", "bLogicalDelete"]
+
+
+
+class currencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CurrencyMaster
+        fields = ['pk', 'sCurrencyName']

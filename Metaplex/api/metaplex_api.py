@@ -180,7 +180,7 @@ class MetaplexAPI:
             data["status"] = 200
             return json.dumps(data)
         except:
-            return json.dump({"status": 400})
+            return json.dumps({"status": 400})
 
     def getAccountsByOwner(self,api_endpoint,owner,mint):
         try:
