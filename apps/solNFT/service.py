@@ -214,6 +214,7 @@ def saveUserDetails(body):
     try:
         logger.info(f"body of function is : {body}")
         body['dDOB'] = datetime.strptime(body['dDOB'], '%d/%m/%Y')
+        body['sPassword'] = make_password(body['sPassword'])
         fd = userMasterMapping(body)
 
         if fd.is_valid():
@@ -451,3 +452,4 @@ def getPropertyDetails(body):
         response = {'status': False,
                     'message': responseMessage('user_not_found')}
         return response
+

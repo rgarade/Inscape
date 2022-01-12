@@ -21,7 +21,8 @@ class User(AbstractUser):
     sAddressLine2 = models.CharField(max_length=500, unique=False,blank=True, null= True)
     sCity = models.CharField(max_length=100, unique=False,blank=True, null= False)
     iZipCode = models.IntegerField(unique=False, blank=True, null= False)
-    iCountryCode = models.IntegerField(unique=False, blank=True, null= False)
+    iStateid = models.ForeignKey('StateMaster', on_delete=models.CASCADE,related_name='user_state_id',blank=True, null= True)
+    iCountryid = models.ForeignKey('CountryMaster', on_delete=models.CASCADE,related_name='user_country_id',blank=True, null= True)
     sEmailaddress = models.EmailField(max_length = 254)
     sPassword = models.CharField(max_length=100, unique=False,blank=True, null= False)
     iPhoneNumber = models.IntegerField(unique=False, blank=True, null= False)
@@ -62,7 +63,8 @@ class PropertyMaster(models.Model):
     sPropertyAddressLine2 = models.CharField(max_length=1000, unique=False,blank=True, null= False)
     sCity = models.CharField(max_length=50, unique=False,blank=True, null= False)
     iZipCode = models.IntegerField(unique=False, blank=True, null= False)
-    iCountryCode = models.IntegerField(unique=False, blank=True, null= False)
+    iStateid = models.ForeignKey('StateMaster', on_delete=models.CASCADE,related_name='property_state_id')
+    iCountryid = models.ForeignKey('CountryMaster', on_delete=models.CASCADE,related_name='property_country_id')
     bLegalClearance = models.BooleanField(unique=False, blank=True, null= False)
     bTechnicalClearance = models.BooleanField(unique=False, blank=True, null= False)
     sAvailabilityStatus = models.CharField(max_length=50, unique=False,blank=True, null= False)
@@ -127,3 +129,28 @@ class UserProperty(models.Model):
 
     class Meta:
         db_table = 'tblUserProperty'
+
+
+class CountryMaster(models.Model):
+    iCountryCode = models.IntegerField(unique=False, blank=True, null= False)
+    sCountryName = models.CharField(max_length=100,blank=True, null= False)
+    iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='countryMaster_created_by')
+    dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='countryMaster_modified_by')
+    dModifiedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
+    class Meta:
+        db_table = 'tblCountryMaster'
+
+
+class StateMaster(models.Model):
+    sStateName =  models.CharField(max_length=100,blank=True, null= False)
+    iCountryid = models.ForeignKey(CountryMaster, on_delete=models.CASCADE,related_name='stateMaster_country_id')
+    iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='stateMaster_created_by')
+    dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='stateMaster_modified_by')
+    dModifiedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
+    class Meta:
+        db_table = 'tblStateMaster'
+
