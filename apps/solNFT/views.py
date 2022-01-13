@@ -190,3 +190,51 @@ def get_account_info(request):
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
     finally:
         logger.info("---End FUNCTION:getAllProperty(request)/Views---")
+
+@api_view(['GET'])
+def getUserOwnedProperty(request):
+    logger.info("---End FUNCTION:getUserOwnedProperty(request)/Views---")
+    try:
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.getUserOwnedProperty(authToken)
+
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(response, status=status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserOwnedProperty : {e}")
+        response = {'Key Error': str(e)}
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def getUserListedProperty(request):
+    logger.info("---End FUNCTION:getUserListedProperty(request)/Views---")
+    try:
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.getUserListedProperty(authToken)
+
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(response, status=status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserListedProperty : {e}")
+        response = {'Key Error': str(e)}
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def getUserSellProperty(request):
+    logger.info("---End FUNCTION:getUserSellProperty(request)/Views---")
+    try:
+        authToken = request.META['HTTP_AUTHORIZATION']
+        response = service.getUserSellProperty(authToken)
+
+        if(response["status"] == False):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(response, status=status.HTTP_200_OK)
+    except KeyError as e:
+        logger.error(f"Key Error in getUserSellProperty : {e}")
+        response = {'Key Error': str(e)}
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)

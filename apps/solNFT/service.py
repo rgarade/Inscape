@@ -517,3 +517,97 @@ def getAllCurrency():
         response = {'status': False,
                     'message': responseMessage('user_not_found')}
         return response
+
+def getUserOwnedProperty(token):
+    logger.info("---START FUNCTION: getUserOwnedProperty(token)/service---")
+    try:
+        logger.info(f"Token of that user is  : {token}")
+        token = Token.objects.get(key=token)
+        user = UserProperty.objects.filter(iUserId=token.user_id,eTypeofTransaction='Buy')
+        user1 = UserPropertySerializer(user, many=False)
+        userpropertyData = json.loads(json.dumps(user1.data))
+       
+        response = {
+            'status': True,
+            'data': userpropertyData
+        }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except UserProperty.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+    except Token.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+
+def getUserListedProperty(token):
+    logger.info("---START FUNCTION: getUserListedProperty(token)/service---")
+    try:
+        logger.info(f"Token of that user is  : {token}")
+        token = Token.objects.get(key=token)
+        user = UserProperty.objects.filter(iUserId=token.user_id,eTypeofTransaction='List')
+        user1 = UserPropertySerializer(user, many=False)
+        userpropertyData = json.loads(json.dumps(user1.data))
+        response = {
+            'status': True,
+            'data': userpropertyData
+        }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except UserProperty.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+    except Token.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+
+def getUserSellProperty(token):
+    logger.info("---START FUNCTION: getUserSellProperty(token)/service---")
+    try:
+        logger.info(f"Token of that user is  : {token}")
+        token = Token.objects.get(key=token)
+        user = UserProperty.objects.filter(iUserId=token.user_id,eTypeofTransaction='Sell')
+        user1 = UserPropertySerializer(user, many=False)
+        userpropertyData = json.loads(json.dumps(user1.data))
+        response = {
+            'status': True,
+            'data': userpropertyData
+        }
+        return response
+
+    except IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        response = {'Error': str(e)}
+        return response
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        response = {'Key Error': str(e)}
+        return response
+    except UserProperty.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response
+    except Token.DoesNotExist:
+        response = {'status': False,
+                    'message': responseMessage('user_not_found')}
+        return response

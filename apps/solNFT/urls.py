@@ -14,4 +14,8 @@ urlpatterns = [
     re_path(r'get_all_currency', views.get_all_currency, name = "get_all_currency"),
     re_path(r'get-user-details', views.getUserDetails, name = "getUserDetails"),
     re_path(r'logout', views.logout, name = "logout"),
+    re_path(r'user-owned-property', views.getUserOwnedProperty, name = "getUserOwnedProperty"),
+    re_path(r'user-listed-property', views.getUserListedProperty, name = "getUserListedProperty"),
+    re_path(r'user-sell-property', views.getUserSellProperty, name = "getUserSellProperty"),
+
 ]

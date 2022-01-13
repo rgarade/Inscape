@@ -35,3 +35,24 @@ class currencySerializer(serializers.ModelSerializer):
     class Meta:
         model = CurrencyMaster
         fields = ['pk', 'sCurrencyName']
+
+
+
+class UserPropertySerializer(serializers.ModelSerializer):
+    createdby = serializers.CharField(
+        source='iCreatedBy.sFirstName', read_only=True)
+    modifiedby = serializers.CharField(
+        source='iModifiedBy.sFirstName', read_only=True)
+    PropertyName = serializers.CharField(
+        source='iPropertyId.sPropertyName', read_only=True)
+    TransactionUserId = serializers.CharField(
+        source='iTransactionUserId.sFirstName', read_only=True)
+    Description = serializers.CharField(
+        source='iPropertyId.sPropertyDesc', read_only=True)
+    CurrencyName = serializers.CharField(
+        source='iCurrencyId.sCurrencyName', read_only=True)
+    class Meta:
+        model = User
+        fields = ['pk','iPropertyId','PropertyName','Description','dStartDate', 'dEndDate', 'eTypeofTimeshare', 'eTypeofTransaction', 'iTransactionUserId','TransactionUserId', 'fTransactionAmount', 'fTransactionFee',
+                  'iCurrencyId','CurrencyName','sJSONObject','createdby','modifiedby','dCreatedDate','dModifiedDate']
+
