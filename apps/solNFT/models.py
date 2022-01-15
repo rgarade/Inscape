@@ -120,7 +120,7 @@ class UserProperty(models.Model):
     fTransactionAmount = models.FloatField(unique=False,blank=True, null= True)
     fTransactionFee = models.FloatField(unique=False,blank=True, null= True)
     iCurrencyId = models.ForeignKey(CurrencyMaster, on_delete=models.CASCADE,related_name='userProperty_currency_id')
-    sJSONObject = models.JSONField()
+    sUserPropJSONObject = models.JSONField()
     iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='userProperty_created_by')
     dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
     iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='userProperty_modified_by')
@@ -153,4 +153,45 @@ class StateMaster(models.Model):
     bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
     class Meta:
         db_table = 'tblStateMaster'
+
+
+class PropertyDetails(models.Model):
+    iPropertyId = models.ForeignKey(PropertyMaster, on_delete=models.CASCADE,related_name='property_master_id')
+    sPropJsonObj = models.JSONField()
+    iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_details_created_by')
+    dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_details_modified_by')
+    dModifiedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
+    class Meta:
+        db_table = 'tblPropertyDetails'
+
+
+class PropertyBid(models.Model):
+    iPropertyId = models.ForeignKey(PropertyDetails, on_delete=models.CASCADE,related_name='property_details_id')
+    sBidStatus = models.CharField(max_length=100,blank=True, null= False)
+    iBidUser = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_details_user_id')
+    dBidStartDate = models.DateTimeField(auto_now_add=False,blank=True, null= False)
+    dBidEndDate = models.DateTimeField(auto_now_add=False,blank=True, null= False)
+    iBidTotalPrice = models.FloatField(unique=False,blank=True, null= True)
+    iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_bid_created_by')
+    dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_bid_modified_by')
+    dModifiedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
+    class Meta:
+        db_table = 'tblPropertyBid'
+
+
+class PropertyBidDetails(models.Model):
+    iPropBid = models.ForeignKey(PropertyBid, on_delete=models.CASCADE,related_name='property_bid_id')
+    sPropBidJsonObj = models.JSONField()
+    iCreatedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_bid_details_created_by')
+    dCreatedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    iModifiedBy = models.ForeignKey(User, on_delete=models.CASCADE,related_name='property_bid_details_modified_by')
+    dModifiedDate = models.DateTimeField(auto_now_add=True,blank=True, null= False)
+    bLogicalDelete = models.BooleanField(unique=False, blank=True, null= False)
+    class Meta:
+        db_table = 'tblPropertyBidDetails'
+
 
