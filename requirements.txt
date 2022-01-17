@@ -41,3 +41,12 @@ typing-extensions==3.10.0.2
 urllib3==1.26.7
 websockets==10.1
 zc.lockfile==2.0
+gunicorn
+jsonfield
+jango-cors-headers
+django-jsonfield
+requests
+datetime
+gunicorn
+PyYAML
+python-dateutil
